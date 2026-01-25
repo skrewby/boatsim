@@ -1,8 +1,13 @@
 #include "NMEA.hpp"
+#include "N2kMessages.h"
+#include "N2kTypes.h"
+#include "NMEA2000.h"
 #include "NMEA2000_SocketCAN.h"
 #include <chrono>
 #include <stdexcept>
 #include <thread>
+#include <type_traits>
+#include <variant>
 
 const unsigned long TransmitMessages[] PROGMEM = {129026L, 0};
 
@@ -50,13 +55,20 @@ NMEA::NMEA(const std::string &port) : m_impl(std::make_unique<Impl>(port)) {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 
+    RegisterMessages();
     m_running = true;
     m_thread = std::thread(&NMEA::Run, this);
 }
 
 NMEA::~NMEA() { Exit(); }
 
-void NMEA::Start() { m_sending = true; }
+void NMEA::Start() {
+    auto now = std::chrono::steady_clock::now();
+    for (auto &msg : m_messages) {
+        msg.last_send = now - msg.period + msg.offset;
+    }
+    m_sending = true;
+}
 
 void NMEA::Exit() {
     m_running = false;
@@ -70,8 +82,65 @@ void NMEA::Stop() { m_sending = false; }
 void NMEA::Run() {
     while (m_running) {
         if (m_sending) {
-            // TODO: Send CAN data here
+            SendMessages();
         }
         m_impl->nmea.ParseMessages();
     }
+}
+
+void NMEA::SendMessages() {
+    State state;
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        state = m_state;
+    }
+
+    auto now = std::chrono::steady_clock::now();
+    for (auto &msg : m_messages) {
+        if (now - msg.last_send >= msg.period) {
+            msg.last_send = now;
+            SendMessage(msg.sender(state));
+        }
+    }
+}
+
+void NMEA::SendMessage(const Message &msg) {
+    tN2kMsg nmea_msg;
+
+    std::visit(
+        [&](auto &&m) {
+            using T = std::decay_t<decltype(m)>;
+
+            if constexpr (std::is_same_v<T, Messages::COGSOGRapid>) {
+                SetN2kCOGSOGRapid(nmea_msg, 1, N2khr_true, m.cog, m.sog);
+            } else if constexpr (std::is_same_v<T, Messages::Temperature>) {
+                SetN2kTemperature(nmea_msg, 1, 1, tN2kTempSource::N2kts_InsideTemperature,
+                                  m.temperature);
+            } else if constexpr (std::is_same_v<T, Messages::Humidity>) {
+                SetN2kHumidity(nmea_msg, 1, 1, tN2kHumiditySource::N2khs_InsideHumidity,
+                               m.humidity);
+            } else if constexpr (std::is_same_v<T, Messages::Pressure>) {
+                SetN2kSetPressure(nmea_msg, 1, 1, tN2kPressureSource::N2kps_Atmospheric,
+                                  m.pressure);
+            }
+        },
+        msg);
+
+    m_impl->nmea.SendMsg(nmea_msg);
+}
+
+void NMEA::RegisterMessages() {
+    using namespace std::chrono_literals;
+
+    Register(250ms, 0ms, [](const State &s) { return Messages::COGSOGRapid{s.cog, s.sog}; });
+    Register(2000ms, 40ms, [](const State &s) { return Messages::Temperature{s.temperature}; });
+    Register(2000ms, 41ms, [](const State &s) { return Messages::Humidity{s.humidity}; });
+    Register(2000ms, 42ms, [](const State &s) { return Messages::Pressure{s.pressure}; });
+}
+
+template <typename F>
+void NMEA::Register(std::chrono::milliseconds period, std::chrono::milliseconds offset,
+                    F &&sender) {
+    using namespace std::chrono_literals;
+    m_messages.push_back({period, offset + 300ms, {}, std::forward<F>(sender)});
 }

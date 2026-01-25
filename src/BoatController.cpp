@@ -28,8 +28,16 @@ bool BoatController::ConnectToInterface(const QString &interface) {
     }
 }
 
-void BoatController::RunNMEA() {
+void BoatController::Start() {
     if (m_nmea) {
         m_nmea->Start();
+        emit SendingChanged();
+    }
+}
+
+void BoatController::Stop() {
+    if (m_nmea) {
+        m_nmea->Stop();
+        emit SendingChanged();
     }
 }

@@ -51,9 +51,9 @@ Window {
 
             Button {
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: "Run NMEA"
+                text: (boatController?.Sending ?? false) ? "Stop" : "Start"
                 enabled: boatController?.Connected ?? false
-                onClicked: boatController?.RunNMEA()
+                onClicked: (boatController?.Sending ?? false) ? boatController?.Stop() : boatController?.Start()
             }
         }
     }
