@@ -56,6 +56,12 @@ public:
 
     bool IsSending() const { return m_sending; }
 
+    void SetCOG(double value);
+    void SetSOG(double value);
+    void SetTemperature(double value);
+    void SetHumidity(double value);
+    void SetPressure(double value);
+
 private:
     void Run();
     void SendMessages();

@@ -24,6 +24,7 @@ qt_add_qml_module(${PROJECT_NAME}
     VERSION 1.0
     QML_FILES
         qml/Main.qml
+        qml/Card.qml
 )
 
 add_subdirectory(lib)

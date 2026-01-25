@@ -79,6 +79,31 @@ void NMEA::Exit() {
 
 void NMEA::Stop() { m_sending = false; }
 
+void NMEA::SetCOG(double value) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_state.cog = value;
+}
+
+void NMEA::SetSOG(double value) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_state.sog = value;
+}
+
+void NMEA::SetTemperature(double value) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_state.temperature = value;
+}
+
+void NMEA::SetHumidity(double value) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_state.humidity = value;
+}
+
+void NMEA::SetPressure(double value) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_state.pressure = value;
+}
+
 void NMEA::Run() {
     while (m_running) {
         if (m_sending) {

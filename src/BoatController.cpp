@@ -41,3 +41,53 @@ void BoatController::Stop() {
         emit SendingChanged();
     }
 }
+
+void BoatController::SetCog(double value) {
+    if (m_cog != value) {
+        m_cog = value;
+        if (m_nmea) {
+            m_nmea->SetCOG(value);
+        }
+        emit CogChanged();
+    }
+}
+
+void BoatController::SetSog(double value) {
+    if (m_sog != value) {
+        m_sog = value;
+        if (m_nmea) {
+            m_nmea->SetSOG(value);
+        }
+        emit SogChanged();
+    }
+}
+
+void BoatController::SetTemperature(double value) {
+    if (m_temperature != value) {
+        m_temperature = value;
+        if (m_nmea) {
+            m_nmea->SetTemperature(value);
+        }
+        emit TemperatureChanged();
+    }
+}
+
+void BoatController::SetHumidity(double value) {
+    if (m_humidity != value) {
+        m_humidity = value;
+        if (m_nmea) {
+            m_nmea->SetHumidity(value);
+        }
+        emit HumidityChanged();
+    }
+}
+
+void BoatController::SetPressure(double value) {
+    if (m_pressure != value) {
+        m_pressure = value;
+        if (m_nmea) {
+            m_nmea->SetPressure(value);
+        }
+        emit PressureChanged();
+    }
+}
