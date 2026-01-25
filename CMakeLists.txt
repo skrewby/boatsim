@@ -15,7 +15,7 @@ qt_standard_project_setup(REQUIRES 6.5)
 
 set(PROJECT_SOURCES
     src/main.cpp
-    src/BoatController.hpp
+    src/BoatController.cpp
 )
 
 qt_add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
@@ -38,4 +38,3 @@ add_custom_command(
         ${CMAKE_SOURCE_DIR}/compile_commands.json
     COMMENT "Creating compile_commands.json"
 )
-
