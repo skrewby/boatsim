@@ -1,7 +1,6 @@
 #include "NMEA.hpp"
 #include "NMEA2000_SocketCAN.h"
 #include <chrono>
-#include <iostream>
 #include <stdexcept>
 #include <thread>
 
@@ -50,8 +49,29 @@ NMEA::NMEA(const std::string &port) : m_impl(std::make_unique<Impl>(port)) {
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
+
+    m_running = true;
+    m_thread = std::thread(&NMEA::Run, this);
 }
 
-NMEA::~NMEA() {};
+NMEA::~NMEA() { Exit(); }
 
-void NMEA::run() { std::cout << "Hello from NMEA\n"; }
+void NMEA::Start() { m_sending = true; }
+
+void NMEA::Exit() {
+    m_running = false;
+    if (m_thread.joinable()) {
+        m_thread.join();
+    }
+}
+
+void NMEA::Stop() { m_sending = false; }
+
+void NMEA::Run() {
+    while (m_running) {
+        if (m_sending) {
+            // TODO: Send CAN data here
+        }
+        m_impl->nmea.ParseMessages();
+    }
+}

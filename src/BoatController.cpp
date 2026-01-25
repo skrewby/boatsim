@@ -14,7 +14,7 @@ QStringList BoatController::CanInterfaces() const {
     return interfaces;
 }
 
-Q_INVOKABLE bool BoatController::ConnectToInterface(const QString &interface) {
+bool BoatController::ConnectToInterface(const QString &interface) {
     m_errorMessage.clear();
     emit ErrorMessageChanged();
     try {
@@ -28,8 +28,8 @@ Q_INVOKABLE bool BoatController::ConnectToInterface(const QString &interface) {
     }
 }
 
-Q_INVOKABLE void BoatController::RunNMEA() {
+void BoatController::RunNMEA() {
     if (m_nmea) {
-        m_nmea->run();
+        m_nmea->Start();
     }
 }
