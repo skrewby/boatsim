@@ -37,3 +37,17 @@ In another, send CAN frames with
 ```sh
 cansend vcan0 123#ABCDEF12
 ```
+
+## Pre-requisites
+
+Debian:
+
+```sh
+sudo apt install build-essential cmake qt6-base-dev qt6-declarative-dev qt6-quickcontrols2-dev
+```
+
+Arch:
+
+```sh
+sudo pacman -S base-devel cmake qt6-base qt6-declarative qt6-quickcontrols2
+```
